@@ -1,0 +1,30 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: db-store-bucket
+    environment:
+      MYSQL_DATABASE: store_db
+      MYSQL_ROOT_PASSWORD: 'store_root_pw'
+      MYSQL_USER: user_bucket
+      MYSQL_PASSWORD: 'store_user_pw'
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pstore_root_pw" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: app-store-bucket
+    ports:
+      - "8080:8080"
+    environment:
+      # 프로퍼티 파일의 설정을 도커 환경변수로 덮어씁니다. (DB 서비스 이름 'db' 사용)
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/store_db?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: user_bucket
+      SPRING_DATASOURCE_PASSWORD: store_user_pw
+    depends_on:
+      db:
+        condition: service_healthy
