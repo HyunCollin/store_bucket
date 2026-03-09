@@ -28,18 +28,14 @@ public class PurchaseOrder {
     @Column(name = "order_status", nullable = false, length = 20)
     private OrderStatus orderStatus;
 
-    @Column(name = "total_quantity", nullable = false)
-    private Integer totalQuantity;
-
     @CreationTimestamp // INSERT 시 현재 시간 자동 입력
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public PurchaseOrder(String userId, OrderStatus orderStatus, Integer totalQuantity) {
+    public PurchaseOrder(String userId, OrderStatus orderStatus) {
         this.userId = userId;
         this.orderStatus = orderStatus;
-        this.totalQuantity = totalQuantity;
     }
 
     // --- 비즈니스 로직 ---
@@ -49,5 +45,13 @@ public class PurchaseOrder {
      */
     public void updateStatus(OrderStatus newStatus) {
         this.orderStatus = newStatus;
+    }
+
+    public void fail() {
+        this.orderStatus = OrderStatus.FAILED;
+    }
+
+    public void completed() {
+        this.orderStatus = OrderStatus.COMPLETED;
     }
 }

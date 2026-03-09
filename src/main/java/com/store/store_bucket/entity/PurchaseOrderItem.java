@@ -50,13 +50,13 @@ public class PurchaseOrderItem {
     private LocalDateTime cancelAt;
 
     @Builder
-    public PurchaseOrderItem(PurchaseOrder purchaseOrder, ProductInventory productInventory, Integer orderQuantity, String snapshotInfo) {
+    public PurchaseOrderItem(PurchaseOrder purchaseOrder, ProductInventory productInventory, Integer orderQuantity, String snapshotInfo, ItemStatus itemStatus) {
         this.purchaseOrder = purchaseOrder;
         this.productInventory = productInventory;
         this.orderQuantity = orderQuantity;
         this.snapshotInfo = snapshotInfo;
         this.cancelQuantity = 0;
-        this.itemStatus = ItemStatus.ORDERED;
+        this.itemStatus = itemStatus;
     }
 
     // --- 비즈니스 로직 ---
@@ -82,5 +82,13 @@ public class PurchaseOrderItem {
         if (this.cancelQuantity.equals(this.orderQuantity)) {
             this.itemStatus = ItemStatus.CANCELLED;
         }
+    }
+
+    public void fail() {
+        this.itemStatus = ItemStatus.FAILED;
+    }
+
+    public void successOrder() {
+        this.itemStatus = ItemStatus.ORDERED;
     }
 }

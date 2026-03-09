@@ -38,7 +38,6 @@ create table purchase_order
     order_no       bigint auto_increment        primary key,
     user_id        varchar(50)                         not null,
     order_status   varchar(20)                         not null,
-    total_quantity int                                 not null,
     created_at     timestamp default CURRENT_TIMESTAMP null
 );
 
@@ -52,7 +51,7 @@ create table purchase_order_item
 (
     order_item_no   bigint auto_increment        primary key,
     order_no        bigint                                not null,
-    inventory_no    bigint                                not null,
+    inventory_no    bigint                                null,
     order_quantity  int                                   not null,
     cancel_quantity int         default 0                 null,
     item_status     varchar(20) default 'ORDERED'         null comment '(ORDERED, CANCELLED)',

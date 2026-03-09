@@ -11,4 +11,7 @@ public interface ProductInventoryRepository extends JpaRepository<ProductInvento
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     ProductInventory findByProductProductIdAndColorAndSizeAndQuantityGreaterThanEqual(String productId, String color, String size, Integer quantity);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    ProductInventory findByProductProductIdAndColorAndSize(String productId, String color, String size);
 }

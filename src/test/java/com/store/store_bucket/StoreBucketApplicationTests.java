@@ -60,8 +60,9 @@ class StoreBucketApplicationTests {
         purchaseProducts.add(item1);
         purchaseProducts.add(item2);
 
+        orderRequest.setPurchaseProducts(purchaseProducts);
+
         // 주문 생성
         purchaseOrderService.createOrder(orderRequest);
-
     }
 }
