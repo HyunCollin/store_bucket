@@ -2,6 +2,7 @@ package com.store.store_bucket.controller;
 
 import com.store.store_bucket.dto.CancelRequest;
 import com.store.store_bucket.dto.OrderRequest;
+import com.store.store_bucket.service.PurchaseOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +14,14 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class OrderController {
 
+    private final PurchaseOrderService purchaseOrderService;
 
     @Operation(summary = "주문 API",
             description = "동시성 제어: 다수의 사용자가 동시에 주문할 때 발생하는 재고 경합 상황을 완벽히 처리해야 함 \n" +
                     "원자성 보장: 주문에 포함된 모든 상품의 재고가 확보될 때만 최종 승인")
     @PostMapping(value = "/order")
-    public String createOrder(@RequestBody OrderRequest request) {
+    public String createOrder(@RequestBody OrderRequest orderRequest) {
+        purchaseOrderService.createOrder(orderRequest);
         return "주문 API";
     }
 

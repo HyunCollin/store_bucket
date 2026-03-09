@@ -12,6 +12,7 @@ create table product_inventory
 (
     inventory_no bigint auto_increment        primary key,
     product_no   int           not null,
+    product_id   varchar(50)   not null,
     color        varchar(20)   not null,
     size         varchar(20)   not null,
     quantity     int default 0 not null,
@@ -105,22 +106,23 @@ INSERT INTO store_db.product ( product_id) VALUES ('82193SRK52');
 INSERT INTO store_db.product ( product_id) VALUES ('M31E5AC014');
 
 -- 2. 상품별 재고(100개) 등록
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 1, 'BK', '95', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 1, 'WH', '95', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 1, 'BK', '100', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 1, 'WH', '100', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 1, 'BK', '105', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 1, 'WH', '105', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'GY', '1', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'BK', '1', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'GY', '2', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'BK', '2', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'GY', '3', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'BK', '3', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'GY', '4', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 2, 'BK', '4', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 3, 'OR', 'FREE', 100);
-INSERT INTO store_db.product_inventory (product_no, color, size, quantity) VALUES ( 3, 'IV', 'FREE', 100);
+-- product_id 추가
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 1, '11101JS505', 'BK', '95', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 1, '11101JS505', 'WH', '95', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 1, '11101JS505', 'BK', '100', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 1, '11101JS505', 'WH', '100', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 1, '11101JS505', 'BK', '105', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 1, '11101JS505', 'WH', '105', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'GY', '1', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'BK', '1', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'GY', '2', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'BK', '2', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'GY', '3', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'BK', '3', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'GY', '4', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 2, '82193SRK52', 'BK', '4', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 3, 'M31E5AC014', 'OR', 'FREE', 100);
+INSERT INTO store_db.product_inventory (product_no, product_id, color, size, quantity) VALUES ( 3, 'M31E5AC014', 'IV', 'FREE', 100);
 
 
 -- 3. 상품별 최초 이력 생성
