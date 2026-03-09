@@ -16,3 +16,7 @@ docker command
 - docker-compose up -d --build
 - docker-compose up -d --build app
 - docker-compose stop app && docker-compose rm -f app
+
+DB table 및 샘플 데이터 생성
+- DB.sql 으로 table 생성 및 샘플 상품 데이터 생성
+- 주요 API 요구사항을 충족하기 위한 조건을 table 반영
