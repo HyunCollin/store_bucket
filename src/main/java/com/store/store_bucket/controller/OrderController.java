@@ -1,9 +1,11 @@
 package com.store.store_bucket.controller;
 
 import com.store.store_bucket.dto.CancelRequest;
+import com.store.store_bucket.dto.OrderProcess;
 import com.store.store_bucket.dto.OrderRequest;
 import com.store.store_bucket.service.PurchaseOrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +22,22 @@ public class OrderController {
             description = "동시성 제어: 다수의 사용자가 동시에 주문할 때 발생하는 재고 경합 상황을 완벽히 처리해야 함 \n" +
                     "원자성 보장: 주문에 포함된 모든 상품의 재고가 확보될 때만 최종 승인")
     @PostMapping(value = "/order")
-    public String createOrder(@RequestBody OrderRequest orderRequest) {
-        purchaseOrderService.createOrder(orderRequest);
-        return "주문 API";
+    public OrderProcess createOrder(@RequestBody OrderRequest orderRequest) {
+        OrderProcess orderProcess = purchaseOrderService.saveTempOrder(orderRequest);
+        if (orderProcess.isOrderAvailable()) {
+            try {
+                purchaseOrderService.purchaseOrder(orderProcess);
+            } catch (Exception e) {
+                // 주문 처리 중 예외 발생 시 주문 실패 처리
+                purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+                orderProcess.fail();
+            }
+        } else {
+            // 주문 요청 상품 검증 실패
+            purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+            orderProcess.fail();
+        }
+        return orderProcess;
     }
 
     @Operation(summary = "취소 API", description = "부분 취소: 주문 전체가 아닌 특정 상품의 수량만 취소하는 기능 지원 \n" +

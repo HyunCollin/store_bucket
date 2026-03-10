@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PurchaseProductDto {
+    private Long inventoryNo;
     private String productId;
     private String color;
     private String size;

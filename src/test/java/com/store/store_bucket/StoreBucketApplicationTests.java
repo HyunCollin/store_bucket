@@ -1,5 +1,6 @@
 package com.store.store_bucket;
 
+import com.store.store_bucket.dto.OrderProcess;
 import com.store.store_bucket.dto.OrderRequest;
 import com.store.store_bucket.dto.PurchaseProductDto;
 import com.store.store_bucket.entity.Product;
@@ -37,12 +38,13 @@ class StoreBucketApplicationTests {
     @Test
     public void createOrderTest(){
         String userId = "test1";
-        // TODO 주문 객체 정보 생성
+        // 주문 객체 정보 생성
         OrderRequest orderRequest = new OrderRequest();
         orderRequest.setUserId(userId);
         orderRequest.setOrderStatus(OrderStatus.PENDING);
         // 구매 상품
         PurchaseProductDto item1 = PurchaseProductDto.builder()
+                .inventoryNo(3L)
                 .productId("11101JS505")
                 .color("BK")
                 .size("100")
@@ -50,6 +52,7 @@ class StoreBucketApplicationTests {
                 .build();
 
         PurchaseProductDto item2 = PurchaseProductDto.builder()
+                .inventoryNo(6L)
                 .productId("11101JS505")
                 .color("WH")
                 .size("105")
@@ -63,6 +66,107 @@ class StoreBucketApplicationTests {
         orderRequest.setPurchaseProducts(purchaseProducts);
 
         // 주문 생성
-        purchaseOrderService.createOrder(orderRequest);
+        OrderProcess orderProcess = purchaseOrderService.saveTempOrder(orderRequest);
+        if (orderProcess.isOrderAvailable()) {
+            try {
+                purchaseOrderService.purchaseOrder(orderProcess);
+            } catch (Exception e) {
+                // 주문 처리 중 예외 발생 시 주문 실패 처리
+                purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+            }
+        } else {
+            // 주문 요청 상품 검증 실패
+            purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+        }
+    }
+
+    @Test
+    public void createOrderFailTest(){
+        String userId = "test1";
+        // 주문 객체 정보 생성
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setUserId(userId);
+        orderRequest.setOrderStatus(OrderStatus.PENDING);
+        // 구매 상품
+        PurchaseProductDto item1 = PurchaseProductDto.builder()
+                .inventoryNo(3L)
+                .productId("11101JS505")
+                .color("BK")
+                .size("100")
+                .quantity(999)
+                .build();
+
+        PurchaseProductDto item2 = PurchaseProductDto.builder()
+                .inventoryNo(6L)
+                .productId("11101JS505")
+                .color("WH")
+                .size("105")
+                .quantity(999)
+                .build();
+
+        List<PurchaseProductDto> purchaseProducts = new ArrayList<>();
+        purchaseProducts.add(item1);
+        purchaseProducts.add(item2);
+
+        orderRequest.setPurchaseProducts(purchaseProducts);
+
+        // 주문 생성
+        OrderProcess orderProcess = purchaseOrderService.saveTempOrder(orderRequest);
+        if (orderProcess.isOrderAvailable()) {
+            try {
+                purchaseOrderService.purchaseOrder(orderProcess);
+            } catch (Exception e) {
+                // 주문 처리 중 예외 발생 시 주문 실패 처리
+                purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+            }
+        } else {
+            // 주문 요청 상품 검증 실패
+            purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+        }
+    }
+
+    @Test
+    public void createOrderNotExistInventoryNoTest(){
+        String userId = "test1";
+        // 주문 객체 정보 생성
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.setUserId(userId);
+        orderRequest.setOrderStatus(OrderStatus.PENDING);
+        // 구매 상품
+        PurchaseProductDto item1 = PurchaseProductDto.builder()
+                .inventoryNo(9999L)
+                .productId("11101JS505")
+                .color("BK")
+                .size("100")
+                .quantity(999)
+                .build();
+
+        PurchaseProductDto item2 = PurchaseProductDto.builder()
+                .inventoryNo(99999L)
+                .productId("11101JS505")
+                .color("WH")
+                .size("105")
+                .quantity(999)
+                .build();
+
+        List<PurchaseProductDto> purchaseProducts = new ArrayList<>();
+        purchaseProducts.add(item1);
+        purchaseProducts.add(item2);
+
+        orderRequest.setPurchaseProducts(purchaseProducts);
+
+        // 주문 생성
+        OrderProcess orderProcess = purchaseOrderService.saveTempOrder(orderRequest);
+        if (orderProcess.isOrderAvailable()) {
+            try {
+                purchaseOrderService.purchaseOrder(orderProcess);
+            } catch (Exception e) {
+                // 주문 처리 중 예외 발생 시 주문 실패 처리
+                purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+            }
+        } else {
+            // 주문 요청 상품 검증 실패
+            purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+        }
     }
 }

@@ -55,7 +55,6 @@ create table purchase_order_item
     order_quantity  int                                   not null,
     cancel_quantity int         default 0                 null,
     item_status     varchar(20) default 'ORDERED'         null comment '(ORDERED, CANCELLED)',
-    snapshot_info   varchar(255)                          null,
     created_at      timestamp   default CURRENT_TIMESTAMP null,
     cancel_at       timestamp                             null,
     constraint purchase_order_item_ibfk_1

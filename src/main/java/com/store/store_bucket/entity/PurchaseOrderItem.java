@@ -37,10 +37,7 @@ public class PurchaseOrderItem {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "item_status", length = 20)
-    private ItemStatus itemStatus = ItemStatus.ORDERED;
-
-    @Column(name = "snapshot_info")
-    private String snapshotInfo;
+    private ItemStatus itemStatus = ItemStatus.PENDING;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -50,11 +47,10 @@ public class PurchaseOrderItem {
     private LocalDateTime cancelAt;
 
     @Builder
-    public PurchaseOrderItem(PurchaseOrder purchaseOrder, ProductInventory productInventory, Integer orderQuantity, String snapshotInfo, ItemStatus itemStatus) {
+    public PurchaseOrderItem(PurchaseOrder purchaseOrder, ProductInventory productInventory, Integer orderQuantity, ItemStatus itemStatus) {
         this.purchaseOrder = purchaseOrder;
         this.productInventory = productInventory;
         this.orderQuantity = orderQuantity;
-        this.snapshotInfo = snapshotInfo;
         this.cancelQuantity = 0;
         this.itemStatus = itemStatus;
     }
@@ -88,7 +84,7 @@ public class PurchaseOrderItem {
         this.itemStatus = ItemStatus.FAILED;
     }
 
-    public void successOrder() {
-        this.itemStatus = ItemStatus.ORDERED;
+    public void completeOrder() {
+        this.itemStatus = ItemStatus.COMPLETED;
     }
 }
