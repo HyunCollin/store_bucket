@@ -1,11 +1,11 @@
 package com.store.store_bucket.controller;
 
+import com.store.store_bucket.dto.CancelOrderProcess;
 import com.store.store_bucket.dto.CancelRequest;
 import com.store.store_bucket.dto.OrderProcess;
 import com.store.store_bucket.dto.OrderRequest;
 import com.store.store_bucket.service.PurchaseOrderService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +35,6 @@ public class OrderController {
         } else {
             // 주문 요청 상품 검증 실패
             purchaseOrderService.failPurchaseOrderProcess(orderProcess);
-            orderProcess.fail();
         }
         return orderProcess;
     }
@@ -43,10 +42,18 @@ public class OrderController {
     @Operation(summary = "취소 API", description = "부분 취소: 주문 전체가 아닌 특정 상품의 수량만 취소하는 기능 지원 \n" +
             "정합성: 취소 승인과 동시에 해당 수량만큼 실시간 재고 복원")
     @PutMapping("/order/{orderId}/cancel")
-    public String cancelOrderItem(
-            @PathVariable Long orderId,
-            @RequestBody CancelRequest request) {
-        return "취소 API";
+    public CancelOrderProcess cancelOrderItem( @PathVariable Long orderId, @RequestBody CancelRequest cancelRequest) {
+        String userId = cancelRequest.getUserId();
+        CancelOrderProcess cancelOrderProcess;
+        try {
+            cancelOrderProcess = purchaseOrderService.getCancelOrderProcess(orderId, userId, cancelRequest.getCancelOrderItems());
+            return cancelOrderProcess;
+        } catch (Exception e) {
+            // TODO - 취소 처리 중 예외 발생 시 취소 실패 처리
+            cancelOrderProcess = CancelOrderProcess.builder().build();
+            cancelOrderProcess.fail();
+        }
+        return cancelOrderProcess;
     }
 
     @Operation(summary = "주문 내역 조회 API", description = "정렬 및 페이징: 최근 주문 순으로 정렬하며, 주문 건수 기준 5개씩 페이징 처리 \n" +

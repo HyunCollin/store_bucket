@@ -1,18 +1,19 @@
 package com.store.store_bucket;
 
-import com.store.store_bucket.dto.OrderProcess;
-import com.store.store_bucket.dto.OrderRequest;
-import com.store.store_bucket.dto.PurchaseProductDto;
+import com.store.store_bucket.dto.*;
 import com.store.store_bucket.entity.Product;
 import com.store.store_bucket.entity.ProductInventory;
+import com.store.store_bucket.entity.PurchaseOrderItem;
 import com.store.store_bucket.enums.OrderStatus;
 import com.store.store_bucket.service.ProductService;
 import com.store.store_bucket.service.PurchaseOrderService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @SpringBootTest
@@ -37,6 +38,10 @@ class StoreBucketApplicationTests {
 
     @Test
     public void createOrderTest(){
+        OrderProcess orderProcess = purchaseOrder();
+    }
+
+    private OrderProcess purchaseOrder() {
         String userId = "test1";
         // 주문 객체 정보 생성
         OrderRequest orderRequest = new OrderRequest();
@@ -78,6 +83,7 @@ class StoreBucketApplicationTests {
             // 주문 요청 상품 검증 실패
             purchaseOrderService.failPurchaseOrderProcess(orderProcess);
         }
+        return orderProcess;
     }
 
     @Test
@@ -167,6 +173,61 @@ class StoreBucketApplicationTests {
         } else {
             // 주문 요청 상품 검증 실패
             purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+        }
+    }
+
+    @Test
+    public void cancelOrderTest(){
+        // 주문 부분 취소 테스트
+        // 신규 주문 생성
+        OrderProcess orderProcess = purchaseOrder();
+        // 주문 취소 요청 정보 생성
+        Long cancelOrderNo = orderProcess.getPurchaseOrder().getOrderNo();
+        if (orderProcess.getPurchaseOrderItems().isEmpty()) {
+            Assertions.fail("주문 상품이 존재하지 않습니다.");
+            return;
+        }
+        PurchaseOrderItem purchaseOrderItem = orderProcess.getPurchaseOrderItems()
+                .stream().findFirst().orElseThrow(() -> new RuntimeException("주문 상품이 존재하지 않습니다."));
+
+        HashMap<Long, CancelOrderItem> cancelOrderItems = new HashMap<>();
+        CancelOrderItem cancelOrderItem = CancelOrderItem.builder()
+                .orderItemNo(purchaseOrderItem.getOrderItemNo())
+                // 실제 주문 수량에서 1개 취소 요청
+                .cancelQuantity(1)
+                .build();
+        cancelOrderItems.put(purchaseOrderItem.getOrderItemNo(), cancelOrderItem);
+        // 주문 취소 진행
+        purchaseOrderService.getCancelOrderProcess(cancelOrderNo, orderProcess.getPurchaseOrder().getUserId(), cancelOrderItems);
+    }
+
+    @Test
+    public void cancelOrderFailTest(){
+        // 주문 부분 취소 테스트
+        // 신규 주문 생성
+        OrderProcess orderProcess = purchaseOrder();
+        // 주문 취소 요청 정보 생성
+        Long cancelOrderNo = orderProcess.getPurchaseOrder().getOrderNo();
+        if (orderProcess.getPurchaseOrderItems().isEmpty()) {
+            Assertions.fail("주문 상품이 존재하지 않습니다.");
+            return;
+        }
+        PurchaseOrderItem purchaseOrderItem = orderProcess.getPurchaseOrderItems()
+                .stream().findFirst().orElseThrow(() -> new RuntimeException("주문 상품이 존재하지 않습니다."));
+
+        HashMap<Long, CancelOrderItem> cancelOrderItems = new HashMap<>();
+        CancelOrderItem cancelOrderItem = CancelOrderItem.builder()
+                .orderItemNo(purchaseOrderItem.getOrderItemNo())
+                // 실제 주문 수량에서 1개 취소 요청
+                .cancelQuantity(100)
+                .build();
+        cancelOrderItems.put(purchaseOrderItem.getOrderItemNo(), cancelOrderItem);
+        // 주문 취소 진행
+        try {
+            purchaseOrderService.getCancelOrderProcess(cancelOrderNo, orderProcess.getPurchaseOrder().getUserId(), cancelOrderItems);
+        } catch (IllegalArgumentException e) {
+            // 취소 수량이 실제 주문 수량보다 많은 경우 예외 발생
+            System.out.println("취소 수량이 실제 주문 수량보다 많습니다. 예외 발생: " + e.getMessage());
         }
     }
 }
