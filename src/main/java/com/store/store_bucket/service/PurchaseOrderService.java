@@ -14,6 +14,10 @@ import com.store.store_bucket.repository.PurchaseOrderRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,6 +108,7 @@ public class PurchaseOrderService {
         purchaseOrderRepository.save(orderProcess.getPurchaseOrder());
         purchaseOrderItemRepository.saveAll(orderProcess.getPurchaseOrderItems());
     }
+
     @Transactional(rollbackFor = Exception.class)
     public CancelOrderProcess getCancelOrderProcess(Long orderNo, String userId, HashMap<Long, CancelOrderItem> cancelOrderItems) {
         CancelOrderProcess cancelOrderProcess = CancelOrderProcess.builder().build();
@@ -120,6 +125,55 @@ public class PurchaseOrderService {
         cancelOrderItems(cancelOrderProcess, cancelOrderItems);
         cancelOrderProcess.success();
         return cancelOrderProcess;
+    }
+
+    @Transactional(readOnly = true)
+    public ViewOrderPage getOrderListByUserId(String userId, int viewPageNo, int viewPageCount) {
+        // 1. page 처리
+        ViewOrderPage viewOrderPage = ViewOrderPage.builder()
+                .pageNo(viewPageNo)
+                .pageCount(viewPageCount)
+                .build();
+        Pageable pageable = createBasePageable(viewPageNo, viewPageCount);
+        // 2. 주문 조회
+        Page<PurchaseOrder> page = purchaseOrderRepository.findByUserIdAndOrderStatus(userId, OrderStatus.COMPLETED, pageable);
+        List<PurchaseOrder> purchaseOrders = page.stream().toList();
+        viewOrderPage.setTotalPages(page.getTotalPages());
+        viewOrderPage.setHasNextPage(page.hasNext());
+        viewOrderPage.setHasPreviousPage(page.hasPrevious());
+
+        // 3 주문 상품 조회 및 dto 생성
+        List<ViewOrder> viewOrders = new ArrayList<>();
+        for (PurchaseOrder purchaseOrder : purchaseOrders) {
+            ViewOrder viewOrder = ViewOrder.builder()
+                    .orderNo(purchaseOrder.getOrderNo())
+                    .userId(purchaseOrder.getUserId())
+                    .orderStatus(purchaseOrder.getOrderStatus().toString())
+                    .createdAt(purchaseOrder.getCreatedAtString())
+                    .build();
+            List<PurchaseOrderItem> purchaseOrderItems = purchaseOrderItemRepository.findByPurchaseOrder(purchaseOrder);
+            List<ViewOrderItem> viewOrderItems = new ArrayList<>();
+            for (PurchaseOrderItem purchaseOrderItem : purchaseOrderItems) {
+                ViewOrderItem viewOrderItem = ViewOrderItem.builder()
+                        .orderItemNo(purchaseOrderItem.getOrderItemNo())
+                        .orderNo(purchaseOrderItem.getPurchaseOrder().getOrderNo())
+                        .productId(purchaseOrderItem.getProductInventory().getProduct().getProductId())
+                        .inventoryNo(purchaseOrderItem.getProductInventory().getInventoryNo())
+                        .color(purchaseOrderItem.getProductInventory().getColor())
+                        .size(purchaseOrderItem.getProductInventory().getSize())
+                        .orderQuantity(purchaseOrderItem.getOrderQuantity())
+                        .cancelQuantity(purchaseOrderItem.getCancelQuantity())
+                        .itemStatus(purchaseOrderItem.getItemStatus())
+                        .createdAt(purchaseOrderItem.getCreatedAt())
+                        .cancelAt(purchaseOrderItem.getCancelAt())
+                        .build();
+                viewOrderItems.add(viewOrderItem);
+            }
+            viewOrder.setViewOrderItems(viewOrderItems);
+            viewOrders.add(viewOrder);
+        }
+        viewOrderPage.setViewOrders(viewOrders);
+        return viewOrderPage;
     }
 
 
@@ -157,4 +211,13 @@ public class PurchaseOrderService {
             throw new RuntimeException("취소 요청한 상품이 주문에 존재하지 않습니다.");
         }
     }
+
+    /**
+     * 화면 pageNo와 db pageIndex 1 차이 보정 및 기본 정렬 설정
+     */
+    private Pageable createBasePageable(int viewPageNo, int viewPageCount) {
+        int pageIndex = Math.max((viewPageNo - 1), 0);
+        return PageRequest.of(pageIndex, viewPageCount, Sort.by("createdAt").descending());
+    }
+
 }

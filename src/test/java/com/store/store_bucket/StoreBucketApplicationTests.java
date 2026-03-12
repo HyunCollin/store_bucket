@@ -230,4 +230,29 @@ class StoreBucketApplicationTests {
             System.out.println("취소 수량이 실제 주문 수량보다 많습니다. 예외 발생: " + e.getMessage());
         }
     }
+
+
+    @Test
+    public void getViewOrderPageTest(){
+        int pageNum = 1;
+        int pageCount = 5;
+        String userId = "test1";
+
+        ViewOrderPage viewOrderPage = purchaseOrderService.getOrderListByUserId(userId, pageNum, pageCount);
+        List<ViewOrder> viewOrders = viewOrderPage.getViewOrders();
+        for (ViewOrder viewOrder : viewOrders){
+            // 주문 정보 출력
+            System.out.println(String.format("주문번호: %d, 주문상태: %s, 주문일시: %s",
+                    viewOrder.getOrderNo(), viewOrder.getOrderStatus(), viewOrder.getCreatedAt()));
+            // 주문 상품 정보 출력
+            for (ViewOrderItem viewOrderItem : viewOrder.getViewOrderItems()){
+                System.out.println(String.format("  주문상품번호: %d, 상품 ID: %s, 색상: %s, 사이즈: %s, 주문수량: %d, 취소수량: %d, 상품상태: %s",
+                        viewOrderItem.getOrderItemNo(), viewOrderItem.getProductId(), viewOrderItem.getColor(),
+                        viewOrderItem.getSize(), viewOrderItem.getOrderQuantity(), viewOrderItem.getCancelQuantity(),
+                        viewOrderItem.getItemStatus()));
+            }
+
+        }
+
+    }
 }

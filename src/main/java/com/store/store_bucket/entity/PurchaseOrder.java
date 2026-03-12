@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Entity
 @Table(name = "purchase_order")
@@ -53,5 +54,13 @@ public class PurchaseOrder {
 
     public void completed() {
         this.orderStatus = OrderStatus.COMPLETED;
+    }
+
+    public String getCreatedAtString() {
+        if (this.createdAt == null) {
+            return "";
+        }
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        return this.createdAt.format(formatter);
     }
 }

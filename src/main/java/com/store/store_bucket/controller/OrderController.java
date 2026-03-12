@@ -1,9 +1,6 @@
 package com.store.store_bucket.controller;
 
-import com.store.store_bucket.dto.CancelOrderProcess;
-import com.store.store_bucket.dto.CancelRequest;
-import com.store.store_bucket.dto.OrderProcess;
-import com.store.store_bucket.dto.OrderRequest;
+import com.store.store_bucket.dto.*;
 import com.store.store_bucket.service.PurchaseOrderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,7 +56,8 @@ public class OrderController {
     @Operation(summary = "주문 내역 조회 API", description = "정렬 및 페이징: 최근 주문 순으로 정렬하며, 주문 건수 기준 5개씩 페이징 처리 \n" +
             "상세 노출:  주문 상품 리스트와 각 상품별 취소 내역(취소 수량, 일시 등)을 모두 포함")
     @GetMapping(value = "/order")
-    public String getOrders() {
-        return "주문 내역 조회";
+    public ViewOrderPage getOrders(@RequestParam(defaultValue = "1") int pageNum, @RequestParam(defaultValue = "5") int pageCount) {
+        String userId = "test1";
+        return purchaseOrderService.getOrderListByUserId(userId, pageNum, pageCount);
     }
 }
