@@ -13,9 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponse {
 
-    private boolean isOrderSuccess = false;
+    private boolean isOrderSuccess;
 
-    List<PurchaseProductDto> failProducts = new ArrayList<>();
+    List<PurchaseProductDto> failProducts;
 
     public void fail(PurchaseProductDto purchaseProductDto) {
         if (this.failProducts == null) {

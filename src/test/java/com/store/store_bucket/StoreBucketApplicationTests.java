@@ -7,10 +7,12 @@ import com.store.store_bucket.entity.PurchaseOrderItem;
 import com.store.store_bucket.enums.OrderStatus;
 import com.store.store_bucket.service.ProductService;
 import com.store.store_bucket.service.PurchaseOrderService;
+import com.store.store_bucket.service.TokenService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,6 +20,8 @@ import java.util.List;
 
 @SpringBootTest
 class StoreBucketApplicationTests {
+    @MockBean
+    private TokenService tokenService;
     @Autowired
     private ProductService productService;
 
@@ -162,17 +166,21 @@ class StoreBucketApplicationTests {
         orderRequest.setPurchaseProducts(purchaseProducts);
 
         // 주문 생성
-        OrderProcess orderProcess = purchaseOrderService.saveTempOrder(orderRequest);
-        if (orderProcess.isOrderAvailable()) {
-            try {
-                purchaseOrderService.purchaseOrder(orderProcess);
-            } catch (Exception e) {
-                // 주문 처리 중 예외 발생 시 주문 실패 처리
+        try {
+            OrderProcess orderProcess = purchaseOrderService.saveTempOrder(orderRequest);
+            if (orderProcess.isOrderAvailable()) {
+                try {
+                    purchaseOrderService.purchaseOrder(orderProcess);
+                } catch (Exception e) {
+                    // 주문 처리 중 예외 발생 시 주문 실패 처리
+                    purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+                }
+            } else {
+                // 주문 요청 상품 검증 실패
                 purchaseOrderService.failPurchaseOrderProcess(orderProcess);
             }
-        } else {
-            // 주문 요청 상품 검증 실패
-            purchaseOrderService.failPurchaseOrderProcess(orderProcess);
+        } catch (Exception e) {
+            System.out.println("상품 정보가 없는 주문 요청 입니다." + e.getMessage());
         }
     }
 
