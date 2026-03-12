@@ -35,7 +35,11 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/api-docs/**"
                         ).permitAll()
+                        // TOKEN 발급 API 접근 허용
                         .requestMatchers("/api/user/token/issue").permitAll()
+                        // 관리자 API 설정
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         .anyRequest().authenticated()
                 )
                 .formLogin(AbstractHttpConfigurer::disable)

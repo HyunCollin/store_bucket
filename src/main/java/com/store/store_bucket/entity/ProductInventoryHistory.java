@@ -1,5 +1,6 @@
 package com.store.store_bucket.entity;
 
+import com.store.store_bucket.enums.ActionType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -21,6 +22,9 @@ public class ProductInventoryHistory {
     @Column(name = "inventory_no")
     private Long inventoryNo;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "action_type", nullable = false, length = 20, updatable = false)
+    private ActionType actionType;
     @Column(name = "last_order_no")
     private Long lastOrderNo;
 
@@ -28,8 +32,9 @@ public class ProductInventoryHistory {
     private LocalDateTime lastOrderTime;
 
     @Builder
-    public ProductInventoryHistory(Long inventoryNo, Long lastOrderNo, LocalDateTime lastOrderTime) {
+    public ProductInventoryHistory(Long inventoryNo, ActionType actionType, Long lastOrderNo, LocalDateTime lastOrderTime) {
         this.inventoryNo = inventoryNo;
+        this.actionType = actionType;
         this.lastOrderNo = lastOrderNo;
         this.lastOrderTime = lastOrderTime;
     }

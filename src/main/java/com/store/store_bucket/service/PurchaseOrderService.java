@@ -1,16 +1,10 @@
 package com.store.store_bucket.service;
 
 import com.store.store_bucket.dto.*;
-import com.store.store_bucket.entity.ProductInventory;
-import com.store.store_bucket.entity.PurchaseOrder;
-import com.store.store_bucket.entity.PurchaseOrderItem;
-import com.store.store_bucket.entity.PurchaseOrderItemHistory;
+import com.store.store_bucket.entity.*;
 import com.store.store_bucket.enums.ActionType;
 import com.store.store_bucket.enums.OrderStatus;
-import com.store.store_bucket.repository.ProductInventoryRepository;
-import com.store.store_bucket.repository.PurchaseOrderItemHistoryRepository;
-import com.store.store_bucket.repository.PurchaseOrderItemRepository;
-import com.store.store_bucket.repository.PurchaseOrderRepository;
+import com.store.store_bucket.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -31,6 +26,7 @@ import java.util.List;
 public class PurchaseOrderService {
 
     private final ProductInventoryRepository productInventoryRepository;
+    private final ProductInventoryHistoryRepository productInventoryHistoryRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final PurchaseOrderItemRepository purchaseOrderItemRepository;
     private final PurchaseOrderItemHistoryRepository purchaseOrderItemHistoryRepository;
@@ -80,6 +76,7 @@ public class PurchaseOrderService {
                 .toList();
         // 주문 상품 재고 조회
         List<ProductInventory> productInventories = productInventoryRepository.findByInventoryNoIn(inventoryNos);
+        List<ProductInventoryHistory> inventoryHistories = new ArrayList<>();
         // 주문 상품 재고 차감
         for (PurchaseOrderItem purchaseOrderItem : orderProcess.getPurchaseOrderItems()) {
             ProductInventory productInventory = productInventories.stream()
@@ -91,12 +88,22 @@ public class PurchaseOrderService {
 
             // 주문 재고 이력 상태 변경
             purchaseOrderItem.completeOrder();
+
+            // 상품의 마지막 유효 주문 정보 저장
+            ProductInventoryHistory productInventoryHistory = ProductInventoryHistory.builder()
+                    .inventoryNo(purchaseOrderItem.getProductInventory().getInventoryNo())
+                    .actionType(ActionType.ORDER)
+                    .lastOrderNo(purchaseOrderItem.getPurchaseOrder().getOrderNo())
+                    .lastOrderTime(LocalDateTime.now())
+                    .build();
+            inventoryHistories.add(productInventoryHistory);
         }
         // 주문 완료 상태로 변경
         orderProcess.getPurchaseOrder().completed();
 
         purchaseOrderRepository.save(orderProcess.getPurchaseOrder());
         purchaseOrderItemRepository.saveAll(orderProcess.getPurchaseOrderItems());
+        productInventoryHistoryRepository.saveAll(inventoryHistories);
     }
 
     @Transactional
@@ -179,7 +186,7 @@ public class PurchaseOrderService {
 
     private void cancelOrderItems(CancelOrderProcess cancelOrderProcess, HashMap<Long, CancelOrderItem> cancelOrderItems) {
         List<PurchaseOrderItemHistory> orderItemHistories = new ArrayList<>();
-
+        List<ProductInventoryHistory> inventoryHistories = new ArrayList<>();
         // 전체 주문 상품 중에서 취소 요청 상품 찾기
         for (PurchaseOrderItem purchaseOrderItem : cancelOrderProcess.getPurchaseOrderItems()) {
 
@@ -198,6 +205,14 @@ public class PurchaseOrderService {
                         .changedQuantity(cancelOrderItem.getCancelQuantity())
                         .build();
                 orderItemHistories.add(orderItemHistory);
+                // 상품의 마지막 유효 주문 정보 저장
+                ProductInventoryHistory productInventoryHistory = ProductInventoryHistory.builder()
+                        .inventoryNo(purchaseOrderItem.getProductInventory().getInventoryNo())
+                        .actionType(ActionType.CANCEL)
+                        .lastOrderNo(purchaseOrderItem.getPurchaseOrder().getOrderNo())
+                        .lastOrderTime(LocalDateTime.now())
+                        .build();
+                inventoryHistories.add(productInventoryHistory);
             }
         }
 
@@ -207,6 +222,8 @@ public class PurchaseOrderService {
             purchaseOrderItemRepository.saveAll(cancelOrderProcess.getPurchaseOrderItems());
             // 주문 상품 취소 이력 저장
             purchaseOrderItemHistoryRepository.saveAll(orderItemHistories);
+            // 상품 마지막 유효 주문 정보 저장
+            productInventoryHistoryRepository.saveAll(inventoryHistories);
         } else {
             throw new RuntimeException("취소 요청한 상품이 주문에 존재하지 않습니다.");
         }
